@@ -22,8 +22,11 @@ class LazyLoadScrollView extends StatefulWidget {
   /// Used to determine if loading of new data has finished. You should use set this if you aren't using a FutureBuilder or StreamBuilder
   final bool isLoading;
 
+  /// 
+  final bool? reverse;
+
   /// Prevented update nested listview with other axis direction
-  final Axis scrollDirection;
+  final Axis? scrollDirection;
 
   @override
   State<StatefulWidget> createState() => LazyLoadScrollViewState();
@@ -35,6 +38,7 @@ class LazyLoadScrollView extends StatefulWidget {
     this.scrollDirection = Axis.vertical,
     this.isLoading = false,
     this.scrollOffset = 100,
+    this.reverse
   }) : super(key: key);
 }
 
@@ -60,13 +64,26 @@ class LazyLoadScrollViewState extends State<LazyLoadScrollView> {
   bool _onNotification(ScrollNotification notification, BuildContext context) {
     if (widget.scrollDirection == notification.metrics.axis) {
       if (notification is ScrollUpdateNotification) {
-        if (notification.metrics.maxScrollExtent >
-                notification.metrics.pixels &&
-            notification.metrics.maxScrollExtent -
-                    notification.metrics.pixels <=
-                widget.scrollOffset) {
-          _loadMore();
-        }
+         bool isOverScrollBottom = notification.metrics.maxScrollExtent >
+             notification.metrics.pixels &&
+             notification.metrics.maxScrollExtent -
+                 notification.metrics.pixels <=
+                 widget.scrollOffset;
+         bool isOverScrollTop = notification.metrics.minScrollExtent <
+             notification.metrics.pixels &&
+             notification.metrics.minScrollExtent +
+                 notification.metrics.pixels <=
+                 widget.scrollOffset;
+
+         if(!reverse){
+           if (isOverScrollBottom) {
+             _loadMore();
+           }
+         }else{
+           if (isOverScrollTop) {
+             _loadMore();
+           }
+         }
         return true;
       }
 
